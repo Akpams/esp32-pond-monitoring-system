@@ -199,15 +199,25 @@ class PondMonitorDashboard {
                 this.updateConnectionStatus('connected');
                 this.retryCount = 0;
             } else {
-                // No data received - show offline state
+                // No data received - show cached data or offline state
+                console.log('No current data from Firebase, checking cache...');
                 this.showOfflineState();
-                throw new Error('No sensor data received from Firebase');
             }
             
         } catch (error) {
             console.error('Data fetch error:', error);
-            this.updateConnectionStatus('error');
-            this.scheduleRetry();
+            
+            // Try to use cached data instead of showing error immediately
+            const cachedData = this.getCachedData();
+            if (cachedData) {
+                console.log('Using cached data due to fetch error');
+                this.sensorData = cachedData;
+                this.updateUI();
+                this.updateConnectionStatus('cached');
+            } else {
+                this.updateConnectionStatus('error');
+                this.scheduleRetry();
+            }
         }
     }
     
@@ -226,6 +236,9 @@ class PondMonitorDashboard {
             deviceId: data.deviceId || 'pond-monitor-001'
         };
         
+        // Cache the data for future use
+        this.cacheData(this.sensorData);
+        
         // Add to historical data
         this.addToHistory();
         
@@ -235,7 +248,7 @@ class PondMonitorDashboard {
         // Update last update time
         this.lastDataUpdate = new Date();
         
-        console.log('📊 Sensor data processed:', this.sensorData);
+        console.log('📊 Sensor data processed and cached:', this.sensorData);
     }
     
     validateTemperature(value) {
@@ -903,6 +916,10 @@ class PondMonitorDashboard {
                 dot.style.background = 'var(--status-warning)';
                 text.textContent = 'Connecting...';
                 break;
+            case 'cached':
+                dot.style.background = 'var(--status-warning)';
+                text.textContent = 'Using Cached Data';
+                break;
             case 'offline':
                 dot.style.background = 'var(--status-offline)';
                 text.textContent = 'Offline';
@@ -1071,7 +1088,44 @@ class PondMonitorDashboard {
         URL.revokeObjectURL(url);
     }
     
-    // Cleanup method
+    // Data caching methods
+    cacheData(data) {
+        if (typeof localStorage !== 'undefined') {
+            try {
+                localStorage.setItem('pondMonitorData', JSON.stringify({
+                    ...data,
+                    cacheTime: Date.now()
+                }));
+                console.log('💾 Data cached successfully');
+            } catch (error) {
+                console.warn('Failed to cache data:', error);
+            }
+        }
+    }
+    
+    getCachedData() {
+        if (typeof localStorage !== 'undefined') {
+            try {
+                const cached = localStorage.getItem('pondMonitorData');
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    const cacheAge = Date.now() - (data.cacheTime || 0);
+                    
+                    // Use cached data if it's less than 1 hour old
+                    if (cacheAge < 3600000) { // 1 hour = 3600000ms
+                        console.log(`📋 Found cached data (${Math.round(cacheAge / 60000)} minutes old)`);
+                        return data;
+                    } else {
+                        console.log('📋 Cached data too old, ignoring');
+                        localStorage.removeItem('pondMonitorData');
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to retrieve cached data:', error);
+            }
+        }
+        return null;
+    }
     destroy() {
         if (this.updateTimer) clearInterval(this.updateTimer);
         if (this.healthCheckTimer) clearInterval(this.healthCheckTimer);
