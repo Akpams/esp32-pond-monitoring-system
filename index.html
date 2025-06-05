@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pond Monitoring System - Professional Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏞️</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Pond Monitor Pro</h1>
+                        <p>Environmental Monitoring System</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="time-display" id="currentTime">12:42 PM PDT</div>
+                <div class="connection-indicator">
+                    <div class="connection-dot" id="connectionDot"></div>
+                    <span id="connectionText">Connected</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard-container">
+        <!-- Top Metrics Row -->
+        <section class="metrics-grid">
+            <!-- Water Quality Index -->
+            <div class="metric-card primary-metric">
+                <div class="metric-header">
+                    <h3>Water Quality</h3>
+                    <p>Overall Index</p>
+                </div>
+                <div class="circular-gauge" id="waterQualityGauge">
+                    <div class="gauge-inner">
+                        <div class="gauge-value" id="waterQualityValue">85</div>
+                        <div class="gauge-status" id="waterQualityStatus">EXCELLENT</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature Monitoring -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h3>Pond Environment</h3>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Temperature</div>
+                        <div class="metric-value" id="tempValue" data-metric="temperature">0°C</div>
+                        <div class="metric-bar">
+                            <div class="bar-fill temperature-bar" style="width: 1%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Water Level</div>
+                        <div class="metric-value" id="levelValue">Normal</div>
+                        <div class="metric-bar">
+                            <div class="bar-fill level-bar" style="width: 1%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">System Health</div>
+                        <div class="metric-value" id="healthValue" data-metric="health">1%</div>
+                        <div class="metric-bar">
+                            <div class="bar-fill health-bar" style="width: 1%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature Gauge -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h3>Temperature</h3>
+                </div>
+                <div class="temperature-gauge">
+                    <div class="gauge-container">
+                        <canvas id="temperatureGauge" width="200" height="200"></canvas>
+                        <div class="gauge-center">
+                            <div class="gauge-reading" id="tempGaugeValue">0</div>
+                            <div class="gauge-unit">°C</div>
+                        </div>
+                    </div>
+                    <div class="gauge-status-text" id="tempStatus">Optimal</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Monitoring Cards -->
+        <section class="monitoring-grid">
+            <!-- Water Level Monitoring -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-water"></i>
+                        <span>Water Level Monitoring</span>
+                    </div>
+                    <div class="card-status status-normal" id="waterLevelStatus">Normal</div>
+                </div>
+                <div class="card-content">
+                    <div class="water-level-visual">
+                        <div class="water-tank-container">
+                            <div class="water-tank">
+                                <div class="water-fill" id="waterFill" style="height: 1%"></div>
+                                <div class="water-surface"></div>
+                                <div class="tank-markers">
+                                    <div class="marker high">High</div>
+                                    <div class="marker normal">Normal</div>
+                                    <div class="marker low">Low</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="level-details">
+                            <div class="level-reading">
+                                <span class="reading-value" id="distanceReading">1</span>
+                                <span class="reading-unit">cm</span>
+                            </div>
+                            <div class="level-description">Distance to Surface</div>
+                            <div class="level-indicators">
+                                <div class="indicator good active">
+                                    <div class="indicator-dot"></div>
+                                    <span>Normal Range</span>
+                                </div>
+                                <div class="indicator warning">
+                                    <div class="indicator-dot"></div>
+                                    <span>Alert Threshold</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature Trends -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>24-Hour Temperature Trend</span>
+                    </div>
+                    <div class="time-range-selector">
+                        <button class="time-btn active" data-range="24h">24H</button>
+                        <button class="time-btn" data-range="7d">7D</button>
+                        <button class="time-btn" data-range="30d">30D</button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="chart-container">
+                        <canvas id="temperatureChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Current</div>
+                            <div class="stat-value" id="currentTemp">1°C</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Min Today</div>
+                            <div class="stat-value" id="minTemp">1°C</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Max Today</div>
+                            <div class="stat-value" id="maxTemp">1°C</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Average</div>
+                            <div class="stat-value" id="avgTemp">1°C</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-microchip"></i>
+                        <span>System Health</span>
+                    </div>
+                    <div class="system-uptime" id="systemUptime">Uptime: 2d 14h</div>
+                </div>
+                <div class="card-content">
+                    <div class="health-grid">
+                        <div class="health-item" data-sensor="temperature-sensor">
+                            <div class="health-icon temperature-sensor">
+                                <i class="fas fa-thermometer-half"></i>
+                            </div>
+                            <div class="health-details">
+                                <div class="health-name">Temperature Sensor</div>
+                                <div class="health-model">DS18B20</div>
+                                <div class="health-status online" id="tempSensorStatus">
+                                    <i class="fas fa-circle"></i>
+                                    Active
+                                </div>
+                            </div>
+                            <div class="health-value">±0.5°C</div>
+                        </div>
+                        
+                        <div class="health-item" data-sensor="ultrasonic-sensor">
+                            <div class="health-icon ultrasonic-sensor">
+                                <i class="fas fa-sound"></i>
+                            </div>
+                            <div class="health-details">
+                                <div class="health-name">Ultrasonic Sensor</div>
+                                <div class="health-model">HC-SR04</div>
+                                <div class="health-status offline" id="ultrasonicStatus">
+                                    <i class="fas fa-circle"></i>
+                                    Offline
+                                </div>
+                            </div>
+                            <div class="health-value">±3mm</div>
+                        </div>
+                        
+                        <div class="health-item" data-sensor="wifi-connection">
+                            <div class="health-icon wifi-connection">
+                                <i class="fas fa-wifi"></i>
+                            </div>
+                            <div class="health-details">
+                                <div class="health-name">WiFi Connection</div>
+                                <div class="health-model">2.4GHz Network</div>
+                                <div class="health-status online" id="wifiStatus">
+                                    <i class="fas fa-circle"></i>
+                                    Strong Signal
+                                </div>
+                            </div>
+                            <div class="health-value">-45dBm</div>
+                        </div>
+                        
+                        <div class="health-item" data-sensor="firebase-sync">
+                            <div class="health-icon firebase-sync">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="health-details">
+                                <div class="health-name">Cloud Sync</div>
+                                <div class="health-model">Firebase Database</div>
+                                <div class="health-status online" id="firebaseStatus">
+                                    <i class="fas fa-circle"></i>
+                                    Synchronized
+                                </div>
+                            </div>
+                            <div class="health-value">60s</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environmental Overview -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-leaf"></i>
+                        <span>Environmental Conditions</span>
+                    </div>
+                    <div class="last-update" id="lastUpdate">Last updated: 2 min ago</div>
+                </div>
+                <div class="card-content">
+                    <div class="environment-grid">
+                        <div class="env-metric">
+                            <div class="env-icon temp-icon">
+                                <i class="fas fa-thermometer-half"></i>
+                            </div>
+                            <div class="env-data">
+                                <div class="env-value" id="envTemp">29.8</div>
+                                <div class="env-unit">°C</div>
+                                <div class="env-label">Water Temperature</div>
+                                <div class="env-trend up">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +0.3°C
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="env-metric">
+                            <div class="env-icon level-icon">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="env-data">
+                                <div class="env-value" id="envLevel">56</div>
+                                <div class="env-unit">cm</div>
+                                <div class="env-label">Water Level</div>
+                                <div class="env-trend stable">
+                                    <i class="fas fa-minus"></i>
+                                    Stable
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="env-metric">
+                            <div class="env-icon quality-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="env-data">
+                                <div class="env-value" id="envQuality">1</div>
+                                <div class="env-unit">%</div>
+                                <div class="env-label">Water Quality</div>
+                                <div class="env-trend up">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +2%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="environment-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Optimal Range:</span>
+                            <span class="summary-value">18-25°C</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Current Status:</span>
+                            <span class="summary-value status-good">Excellent Conditions</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Next Maintenance:</span>
+                            <span class="summary-value">In 5 days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert System -->
+            <div class="monitoring-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-bell"></i>
+                        <span>Alert System</span>
+                    </div>
+                    <div class="alert-badge" id="alertBadge">
+                        <span class="badge-count">0</span>
+                        <span class="badge-text">Active Alerts</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="alert-list" id="alertList">
+                        <div class="alert-item success">
+                            <div class="alert-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">System Normal</div>
+                                <div class="alert-message">All sensors operating within normal parameters</div>
+                                <div class="alert-time">2 minutes ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-item info">
+                            <div class="alert-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title">Sensor Calibration</div>
+                                <div class="alert-message">Ultrasonic sensor awaiting connection</div>
+                                <div class="alert-time">1 hour ago</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-settings">
+                        <div class="setting-item">
+                            <span class="setting-label">Temperature Alerts</span>
+                            <div class="toggle-switch active" data-setting="temp-alerts">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">Level Alerts</span>
+                            <div class="toggle-switch active" data-setting="level-alerts">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <div class="qr-code">
+                    <div class="qr-placeholder">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <p>Scan QR code to<br>share this dashboard</p>
+                </div>
+            </div>
+            <div class="footer-center">
+                <div class="device-info">
+                    <p><strong>Device ID:</strong> pond-monitor-001</p>
+                    <p><strong>Location:</strong> Main Pond - Garden</p>
+                    <p><strong>Version:</strong> 3.0.0</p>
+                </div>
+            </div>
+            <div class="footer-right">
+                <div class="powered-by">
+                    <p>Powered by</p>
+                    <div class="tech-stack">
+                        <span class="tech-item">ESP32</span>
+                        <span class="tech-item">Firebase</span>
+                        <span class="tech-item">IoT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
