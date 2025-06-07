@@ -494,39 +494,57 @@ class PondMonitorDashboard {
     }
     
     updateWaterLevelDisplay() {
-        const { distance, status } = this.sensorData.waterLevel;
-        
-        // Update distance displays
-        const distanceElements = [
-            'waterDistance', 'distanceReading', 'currentLevel', 'envLevel'
-        ];
-        
-        distanceElements.forEach(id => {
-            const element = document.getElementById(id) || document.querySelector(`.${id}`);
-            if (element) {
-                element.textContent = distance !== null ? distance.toFixed(0) : '--';
-            }
-        });
-        
-        // Update status displays
-        const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus');
-        statusElements.forEach(element => {
-            if (element) {
-                element.textContent = status;
-                element.className = `card-status ${this.getStatusClass(status)}`;
-            }
-        });
-        
-        // Update water tank visualization
-        this.updateWaterTank(distance);
-        
-        // Update level indicators
-        this.updateLevelIndicators(distance, status);
-        
-        // Update metric bar
-        this.updateMetricBar('level-bar', distance, 0, 100);
+    const { distance, status } = this.sensorData.waterLevel;
+    
+    // Update distance displays
+    const distanceElements = [
+        'waterDistance', 'distanceReading', 'currentLevel', 'envLevel'
+    ];
+    
+    distanceElements.forEach(id => {
+        const element = document.getElementById(id) || document.querySelector(`.${id}`);
+        if (element) {
+            element.textContent = distance !== null ? distance.toFixed(0) : '--';
+        }
+    });
+    
+    // Update ALL status displays with the same status value
+    const statusElements = [
+        // Main water level monitoring status
+        document.querySelector('.card-status'),
+        document.getElementById('waterStatus'), 
+        document.getElementById('waterLevelStatus'),
+        // Pond Environment section status - ADD THESE SELECTORS
+        document.querySelector('[data-status="water-level"]'),
+        document.querySelector('.env-status'),
+        // Any other water level status elements
+        ...document.querySelectorAll('[data-water-status]')
+    ].filter(Boolean); // Remove null elements
+    
+    statusElements.forEach(element => {
+        if (element) {
+            element.textContent = status;
+            // Apply consistent styling
+            element.className = `card-status ${this.getStatusClass(status)}`;
+        }
+    });
+    
+    // SPECIFICALLY target the Pond Environment water level status
+    const envWaterStatus = document.querySelector('#pondEnvironment .water-status, .pond-env-water-status');
+    if (envWaterStatus) {
+        envWaterStatus.textContent = status;
+        envWaterStatus.className = `water-status ${this.getStatusClass(status)}`;
     }
     
+    // Update water tank visualization
+    this.updateWaterTank(distance);
+    
+    // Update level indicators
+    this.updateLevelIndicators(distance, status);
+    
+    // Update metric bar
+    this.updateMetricBar('level-bar', distance, 0, 100);
+ }
     updateStatsOverview() {
         // Update system status
         const overallStatus = this.calculateOverallStatus();
