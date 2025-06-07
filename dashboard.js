@@ -494,39 +494,39 @@ class PondMonitorDashboard {
     }
     
     updateWaterLevelDisplay() {
-    const { distance, status } = this.sensorData.waterLevel;
+        const { distance, status } = this.sensorData.waterLevel;
+        
+        // Update distance displays
+        const distanceElements = [
+            'waterDistance', 'distanceReading', 'currentLevel', 'envLevel'
+        ];
+        
+        distanceElements.forEach(id => {
+            const element = document.getElementById(id) || document.querySelector(`.${id}`);
+            if (element) {
+                element.textContent = distance !== null ? distance.toFixed(0) : '--';
+            }
+        });
+        
+        // Update status displays
+        const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus');
+        statusElements.forEach(element => {
+            if (element) {
+                element.textContent = status;
+                element.className = `card-status ${this.getStatusClass(status)}`;
+            }
+        });
+        
+        // Update water tank visualization
+        this.updateWaterTank(distance);
+        
+        // Update level indicators
+        this.updateLevelIndicators(distance, status);
+        
+        // Update metric bar
+        this.updateMetricBar('level-bar', distance, 0, 100);
+    }
     
-    // Update distance displays
-    const distanceElements = [
-        'waterDistance', 'distanceReading', 'currentLevel', 'envLevel'
-    ];
-    
-    distanceElements.forEach(id => {
-        const element = document.getElementById(id) || document.querySelector(`.${id}`);
-        if (element) {
-            element.textContent = distance !== null ? distance.toFixed(0) : '--';
-        }
-    });
-    
-    // Update status displays - now including both sections
-    const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus, .env-status');
-    statusElements.forEach(element => {
-        if (element) {
-            element.textContent = status;
-            // Apply consistent status classes
-            element.className = element.className.split(' ')[0] + ' ' + this.getStatusClass(status);
-        }
-    });
-    
-    // Update water tank visualization
-    this.updateWaterTank(distance);
-    
-    // Update level indicators
-    this.updateLevelIndicators(distance, status);
-    
-    // Update metric bar
-    this.updateMetricBar('level-bar', distance, 0, 100);
-}
     updateStatsOverview() {
         // Update system status
         const overallStatus = this.calculateOverallStatus();
@@ -872,19 +872,14 @@ class PondMonitorDashboard {
     }
     
     getStatusClass(status) {
-    const statusLower = status.toLowerCase();
-    switch (statusLower) {
-        case 'normal': 
-            return 'status-good';
-        case 'low level': 
-        case 'high level': 
-            return 'status-warning';
-        case 'sensor offline': 
-            return 'status-critical';
-        default: 
-            return statusLower.includes('warning') ? 'status-warning' : 'status-critical';
+        switch (status.toLowerCase()) {
+            case 'normal': return 'status-normal';
+            case 'low level': return 'status-warning';
+            case 'high level': return 'status-critical';
+            case 'sensor offline': return 'status-critical';
+            default: return 'status-critical';
+        }
     }
-}
     
     initializeChart() {
         const ctx = document.getElementById('temperatureChart');
