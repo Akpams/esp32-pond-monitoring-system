@@ -508,33 +508,15 @@ class PondMonitorDashboard {
         }
     });
     
-    // Update ALL status displays with the same status value
-    const statusElements = [
-        // Main water level monitoring status
-        document.querySelector('.card-status'),
-        document.getElementById('waterStatus'), 
-        document.getElementById('waterLevelStatus'),
-        // Pond Environment section status - ADD THESE SELECTORS
-        document.querySelector('[data-status="water-level"]'),
-        document.querySelector('.env-status'),
-        // Any other water level status elements
-        ...document.querySelectorAll('[data-water-status]')
-    ].filter(Boolean); // Remove null elements
-    
+    // Update status displays - now including both sections
+    const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus, .env-status');
     statusElements.forEach(element => {
         if (element) {
             element.textContent = status;
-            // Apply consistent styling
-            element.className = `card-status ${this.getStatusClass(status)}`;
+            // Apply consistent status classes
+            element.className = element.className.split(' ')[0] + ' ' + this.getStatusClass(status);
         }
     });
-    
-    // SPECIFICALLY target the Pond Environment water level status
-    const envWaterStatus = document.querySelector('#pondEnvironment .water-status, .pond-env-water-status');
-    if (envWaterStatus) {
-        envWaterStatus.textContent = status;
-        envWaterStatus.className = `water-status ${this.getStatusClass(status)}`;
-    }
     
     // Update water tank visualization
     this.updateWaterTank(distance);
@@ -544,7 +526,7 @@ class PondMonitorDashboard {
     
     // Update metric bar
     this.updateMetricBar('level-bar', distance, 0, 100);
- }
+}
     updateStatsOverview() {
         // Update system status
         const overallStatus = this.calculateOverallStatus();
@@ -890,14 +872,19 @@ class PondMonitorDashboard {
     }
     
     getStatusClass(status) {
-        switch (status.toLowerCase()) {
-            case 'normal': return 'status-normal';
-            case 'low level': return 'status-warning';
-            case 'high level': return 'status-critical';
-            case 'sensor offline': return 'status-critical';
-            default: return 'status-critical';
-        }
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+        case 'normal': 
+            return 'status-good';
+        case 'low level': 
+        case 'high level': 
+            return 'status-warning';
+        case 'sensor offline': 
+            return 'status-critical';
+        default: 
+            return statusLower.includes('warning') ? 'status-warning' : 'status-critical';
     }
+}
     
     initializeChart() {
         const ctx = document.getElementById('temperatureChart');
