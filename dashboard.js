@@ -1,8 +1,3 @@
-/**
- * Professional Pond Monitor Dashboard - Updated Main Application
- * Enhanced for professional UI with real sensor data integration
- */
-
 class PondMonitorDashboard {
     constructor() {
         this.isInitialized = false;
@@ -16,6 +11,7 @@ class PondMonitorDashboard {
         this.sensorData = {
             temperature: { celsius: null, fahrenheit: null },
             waterLevel: { distance: null, status: 'Sensor Offline' },
+            location: { latitude: null, longitude: null, time: null, valid: false },
             timestamp: null,
             deviceId: null
         };
@@ -43,7 +39,7 @@ class PondMonitorDashboard {
     
     async init() {
         try {
-            console.log('🚀 Initializing Professional Pond Monitor Dashboard...');
+            console.log('Initializing Professional Pond Monitor Dashboard...');
             
             // Validate configuration
             if (typeof CONFIG !== 'undefined') {
@@ -70,10 +66,10 @@ class PondMonitorDashboard {
             await this.startDataFetching();
             
             this.isInitialized = true;
-            console.log('✅ Professional Dashboard initialized successfully');
+            console.log('Professional Dashboard initialized successfully');
             
         } catch (error) {
-            console.error('❌ Dashboard initialization failed:', error);
+            console.error('Dashboard initialization failed:', error);
             this.showError('Failed to initialize dashboard: ' + error.message);
         }
     }
@@ -232,6 +228,12 @@ class PondMonitorDashboard {
                 distance: this.validateWaterLevel(data.waterLevel?.distance),
                 status: data.waterLevel?.status || 'Unknown'
             },
+            location: {
+                latitude: data.location?.latitude || null,
+                longitude: data.location?.longitude || null,
+                time: data.location?.time || null,
+                valid: data.location?.valid || false
+            },
             timestamp: data.timestamp || Date.now(),
             deviceId: data.deviceId || 'pond-monitor-001'
         };
@@ -248,7 +250,7 @@ class PondMonitorDashboard {
         // Update last update time
         this.lastDataUpdate = new Date();
         
-        console.log('📊 Sensor data processed and cached:', this.sensorData);
+        console.log('Sensor data processed and cached:', this.sensorData);
     }
     
     validateTemperature(value) {
@@ -440,11 +442,18 @@ class PondMonitorDashboard {
         this.updateTrendIndicator('level-trend', levelTrend);
         
         // Update environmental metrics
-        const { temperature, waterLevel } = this.sensorData;
+        const { temperature, waterLevel, location } = this.sensorData;
         
         // Update min/max/average temperatures (mock data for now)
         if (temperature.celsius !== null) {
             this.updateStatValue('minTemp', (temperature.celsius - 2).toFixed(1) + '°C');
+            this.updateStatValue('maxTemp', (temperature.celsius + 2).toFixed(1) + '°C');
+            this.updateStatValue('avgTemp', temperature.celsius.toFixed(1) + '°C');
+        }
+        
+        // Update GPS location displays
+        this.updateLocationDisplay();
+    }C');
             this.updateStatValue('maxTemp', (temperature.celsius + 2).toFixed(1) + '°C');
             this.updateStatValue('avgTemp', temperature.celsius.toFixed(1) + '°C');
         }
@@ -610,7 +619,7 @@ class PondMonitorDashboard {
     }
     
     showOfflineState() {
-        console.log('📴 Showing offline state - no sensor data available');
+        console.log('Showing offline state - no sensor data available');
         
         // Reset sensor data to null values
         this.sensorData = {
@@ -955,12 +964,20 @@ class PondMonitorDashboard {
     updateTime() {
         const timeElement = document.getElementById('currentTime');
         if (timeElement) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                timeZoneName: 'short'
-            });
+            let timeString;
+            
+            // Use GPS time if available, otherwise use local time
+            if (this.sensorData.location && this.sensorData.location.valid && this.sensorData.location.time) {
+                timeString = this.sensorData.location.time + ' UTC';
+            } else {
+                const now = new Date();
+                timeString = now.toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    timeZoneName: 'short'
+                });
+            }
+            
             timeElement.textContent = timeString;
         }
         
@@ -994,18 +1011,18 @@ class PondMonitorDashboard {
         if (this.retryCount < maxRetries) {
             this.retryCount++;
             setTimeout(() => {
-                console.log(`🔄 Retrying connection (${this.retryCount}/${maxRetries})`);
+                console.log(`Retrying connection (${this.retryCount}/${maxRetries})`);
                 this.fetchData();
             }, retryDelay);
         } else {
-            console.error('❌ Max retries reached. Stopping automatic retries.');
+            console.error('Max retries reached. Stopping automatic retries.');
             this.updateConnectionStatus('error');
             this.showOfflineState();
         }
     }
     
     refreshData() {
-        console.log('🔄 Manual refresh triggered');
+        console.log('Manual refresh triggered');
         this.retryCount = 0;
         this.fetchData();
     }
@@ -1020,10 +1037,10 @@ class PondMonitorDashboard {
     
     handleOnlineStatus(isOnline) {
         if (isOnline) {
-            console.log('🌐 Back online - resuming updates');
+            console.log('Back online - resuming updates');
             this.resumeUpdates();
         } else {
-            console.log('📴 Gone offline - pausing updates');
+            console.log('Gone offline - pausing updates');
             this.pauseUpdates();
         }
     }
@@ -1096,7 +1113,7 @@ class PondMonitorDashboard {
                     ...data,
                     cacheTime: Date.now()
                 }));
-                console.log('💾 Data cached successfully');
+                console.log('Data cached successfully');
             } catch (error) {
                 console.warn('Failed to cache data:', error);
             }
@@ -1113,10 +1130,10 @@ class PondMonitorDashboard {
                     
                     // Use cached data if it's less than 1 hour old
                     if (cacheAge < 3600000) { // 1 hour = 3600000ms
-                        console.log(`📋 Found cached data (${Math.round(cacheAge / 60000)} minutes old)`);
+                        console.log(`Found cached data (${Math.round(cacheAge / 60000)} minutes old)`);
                         return data;
                     } else {
-                        console.log('📋 Cached data too old, ignoring');
+                        console.log('Cached data too old, ignoring');
                         localStorage.removeItem('pondMonitorData');
                     }
                 }
@@ -1136,7 +1153,7 @@ class PondMonitorDashboard {
         window.removeEventListener('online', this.handleOnlineStatus);
         window.removeEventListener('offline', this.handleOnlineStatus);
         
-        console.log('🧹 Dashboard cleanup completed');
+        console.log('Dashboard cleanup completed');
     }
 }
 
@@ -1169,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the dashboard
     window.dashboard = new PondMonitorDashboard();
     
-    console.log('✅ Professional Pond Dashboard Ready');
+    console.log('Professional Pond Dashboard Ready');
 });
 
 // Handle page unload
@@ -1184,10 +1201,10 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
-                console.log('✅ Service Worker registered successfully');
+                console.log('Service Worker registered successfully');
             })
             .catch(error => {
-                console.log('❌ Service Worker registration failed');
+                console.log('Service Worker registration failed');
             });
     });
 }
