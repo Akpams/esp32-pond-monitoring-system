@@ -494,38 +494,69 @@ class PondMonitorDashboard {
     }
     
     updateWaterLevelDisplay() {
-        const { distance, status } = this.sensorData.waterLevel;
-        
-        // Update distance displays
-        const distanceElements = [
-            'waterDistance', 'distanceReading', 'currentLevel', 'envLevel'
-        ];
-        
-        distanceElements.forEach(id => {
-            const element = document.getElementById(id) || document.querySelector(`.${id}`);
-            if (element) {
-                element.textContent = distance !== null ? distance.toFixed(0) : '--';
-            }
-        });
-        
-        // Update status displays
-        const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus');
-        statusElements.forEach(element => {
-            if (element) {
-                element.textContent = status;
-                element.className = `card-status ${this.getStatusClass(status)}`;
-            }
-        });
-        
-        // Update water tank visualization
-        this.updateWaterTank(distance);
-        
-        // Update level indicators
-        this.updateLevelIndicators(distance, status);
-        
-        // Update metric bar
-        this.updateMetricBar('level-bar', distance, 0, 100);
+    const { distance, status } = this.sensorData.waterLevel;
+    
+    // Update distance displays
+    const distanceElements = [
+        'waterDistance', 'distanceReading', 'currentLevel', 'envLevel'
+    ];
+    
+    distanceElements.forEach(id => {
+        const element = document.getElementById(id) || document.querySelector(`.${id}`);
+        if (element) {
+            element.textContent = distance !== null ? distance.toFixed(0) : '--';
+        }
+    });
+    
+    // Update status displays for both sections
+    const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus, .env-status');
+    statusElements.forEach(element => {
+        if (element) {
+            element.textContent = status;
+            // Remove all status classes and add the appropriate one
+            element.className = element.className.split(' ')[0] + ' ' + this.getStatusClass(status);
+        }
+    });
+    
+    // Update water tank visualization
+    this.updateWaterTank(distance);
+    
+    // Update level indicators
+    this.updateLevelIndicators(distance, status);
+    
+    // Update metric bar
+    this.updateMetricBar('level-bar', distance, 0, 100);
+}
+
+updateEnvironmentalConditions() {
+    // Update trend indicators
+    const tempTrend = this.calculateTrend(this.historicalData.temperature);
+    const levelTrend = this.calculateTrend(this.historicalData.waterLevel);
+    
+    this.updateTrendIndicator('temp-trend', tempTrend);
+    this.updateTrendIndicator('level-trend', levelTrend);
+    
+    // Update environmental metrics
+    const { temperature, waterLevel, location } = this.sensorData;
+    
+    // Update min/max/average temperatures (mock data for now)
+    if (temperature.celsius !== null) {
+        this.updateStatValue('minTemp', (temperature.celsius - 2).toFixed(1) + '°C');
+        this.updateStatValue('maxTemp', (temperature.celsius + 2).toFixed(1) + '°C');
+        this.updateStatValue('avgTemp', temperature.celsius.toFixed(1) + '°C');
     }
+    
+    // Ensure water level status is updated in both sections
+    const statusElements = document.querySelectorAll('.env-status');
+    statusElements.forEach(element => {
+        if (element) {
+            element.textContent = waterLevel.status;
+            element.className = 'env-status ' + this.getStatusClass(waterLevel.status);
+        }
+    });
+    
+    // GPS location display is handled by updateLocationDisplay()
+}
     
     updateStatsOverview() {
         // Update system status
@@ -872,13 +903,13 @@ class PondMonitorDashboard {
     }
     
     getStatusClass(status) {
-        switch (status.toLowerCase()) {
-            case 'normal': return 'status-normal';
-            case 'low level': return 'status-warning';
-            case 'high level': return 'status-critical';
-            case 'sensor offline': return 'status-critical';
-            default: return 'status-critical';
-        }
+    switch (status.toLowerCase()) {
+        case 'normal': return 'status-normal';
+        case 'low level': return 'status-warning';
+        case 'high level': return 'status-critical';
+        case 'sensor offline': return 'status-critical';
+        default: return 'status-critical';
+    }
     }
     
     initializeChart() {
