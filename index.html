@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏞️</text></svg>">
 </head>
 <body>
     <!-- Header -->
@@ -19,6 +19,20 @@
                 <div class="logo">
                     <div class="logo-icon">
                         <i class="fas fa-water"></i>
+                        <div class="health-item" data-sensor="gps-module">
+                            <div class="health-icon gps-module">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                            <div class="health-details">
+                                <div class="health-name">GPS Module</div>
+                                <div class="health-model">NEO-8M</div>
+                                <div class="health-status offline" data-gps="status">
+                                    <i class="fas fa-circle"></i>
+                                    No GPS Fix
+                                </div>
+                            </div>
+                            <div class="health-value">±3m</div>
+                        </div>
                     </div>
                     <div class="logo-text">
                         <h1>Pond Monitor Pro</h1>
@@ -62,23 +76,32 @@
                 <div class="metric-grid">
                     <div class="metric-item">
                         <div class="metric-label">Temperature</div>
-                        <div class="metric-value" id="tempValue" data-metric="temperature">0°C</div>
+                        <div class="metric-value" id="tempValue" data-metric="temperature">29.8°C</div>
                         <div class="metric-bar">
-                            <div class="bar-fill temperature-bar" style="width: 1%"></div>
+                            <div class="bar-fill temperature-bar" style="width: 65%"></div>
                         </div>
                     </div>
                     <div class="metric-item">
                         <div class="metric-label">Water Level</div>
                         <div class="metric-value" id="levelValue">Normal</div>
                         <div class="metric-bar">
-                            <div class="bar-fill level-bar" style="width: 1%"></div>
+                            <div class="bar-fill level-bar" style="width: 75%"></div>
                         </div>
                     </div>
                     <div class="metric-item">
-                        <div class="metric-label">System Health</div>
-                        <div class="metric-value" id="healthValue" data-metric="health">1%</div>
+                        <div class="metric-label">GPS Location</div>
+                        <div class="metric-value" style="font-size: 0.9rem;">
+                            <span data-gps="latitude">--</span>, <span data-gps="longitude">--</span>
+                        </div>
                         <div class="metric-bar">
-                            <div class="bar-fill health-bar" style="width: 1%"></div>
+                            <div class="bar-fill gps-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">GPS Time (UTC)</div>
+                        <div class="metric-value" data-gps="time">--:--:--</div>
+                        <div class="metric-bar">
+                            <div class="bar-fill time-bar" style="width: 100%"></div>
                         </div>
                     </div>
                 </div>
@@ -93,7 +116,7 @@
                     <div class="gauge-container">
                         <canvas id="temperatureGauge" width="200" height="200"></canvas>
                         <div class="gauge-center">
-                            <div class="gauge-reading" id="tempGaugeValue">0</div>
+                            <div class="gauge-reading" id="tempGaugeValue">29.8</div>
                             <div class="gauge-unit">°C</div>
                         </div>
                     </div>
@@ -117,7 +140,7 @@
                     <div class="water-level-visual">
                         <div class="water-tank-container">
                             <div class="water-tank">
-                                <div class="water-fill" id="waterFill" style="height: 1%"></div>
+                                <div class="water-fill" id="waterFill" style="height: 60%"></div>
                                 <div class="water-surface"></div>
                                 <div class="tank-markers">
                                     <div class="marker high">High</div>
@@ -128,7 +151,7 @@
                         </div>
                         <div class="level-details">
                             <div class="level-reading">
-                                <span class="reading-value" id="distanceReading">1</span>
+                                <span class="reading-value" id="distanceReading">56</span>
                                 <span class="reading-unit">cm</span>
                             </div>
                             <div class="level-description">Distance to Surface</div>
@@ -167,19 +190,19 @@
                     <div class="chart-stats">
                         <div class="stat-item">
                             <div class="stat-label">Current</div>
-                            <div class="stat-value" id="currentTemp">1°C</div>
+                            <div class="stat-value" id="currentTemp">29.8°C</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Min Today</div>
-                            <div class="stat-value" id="minTemp">1°C</div>
+                            <div class="stat-value" id="minTemp">24.1°C</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Max Today</div>
-                            <div class="stat-value" id="maxTemp">1°C</div>
+                            <div class="stat-value" id="maxTemp">31.5°C</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-label">Average</div>
-                            <div class="stat-value" id="avgTemp">1°C</div>
+                            <div class="stat-value" id="avgTemp">28.2°C</div>
                         </div>
                     </div>
                 </div>
@@ -301,16 +324,18 @@
                         </div>
                         
                         <div class="env-metric">
-                            <div class="env-icon quality-icon">
-                                <i class="fas fa-eye"></i>
+                            <div class="env-icon gps-icon">
+                                <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <div class="env-data">
-                                <div class="env-value" id="envQuality">1</div>
-                                <div class="env-unit">%</div>
-                                <div class="env-label">Water Quality</div>
-                                <div class="env-trend up">
-                                    <i class="fas fa-arrow-up"></i>
-                                    +2%
+                                <div class="env-value" style="font-size: 1.2rem;">
+                                    <span data-gps="latitude">--</span>
+                                </div>
+                                <div class="env-unit">LAT</div>
+                                <div class="env-label">GPS Latitude</div>
+                                <div class="env-trend" data-gps="status">
+                                    <i class="fas fa-satellite-dish"></i>
+                                    No Fix
                                 </div>
                             </div>
                         </div>
