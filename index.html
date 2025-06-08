@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 <body>
     <!-- Header -->
     <header class="main-header">
@@ -17,23 +18,9 @@
                 <div class="logo">
                     <div class="logo-icon">
                         <i class="fas fa-water"></i>
-                        <div class="health-item" data-sensor="gps-module">
-                            <div class="health-icon gps-module">
-                                <i class="fas fa-satellite-dish"></i>
-                            </div>
-                            <div class="health-details">
-                                <div class="health-name">GPS Module</div>
-                                <div class="health-model">NEO-8M</div>
-                                <div class="health-status offline" data-gps="status">
-                                    <i class="fas fa-circle"></i>
-                                    No GPS Fix
-                                </div>
-                            </div>
-                            <div class="health-value">±3m</div>
-                        </div>
                     </div>
                     <div class="logo-text">
-                        <h1>Pond Monitoring system</h1>
+                        <h1>Pond Monitor Pro</h1>
                         <p>Environmental Monitoring System</p>
                     </div>
                 </div>
@@ -79,17 +66,6 @@
                             <div class="bar-fill temperature-bar" style="width: 65%"></div>
                         </div>
                     </div>
-                    <!-- <div class="metric-item">
-                        <div class="metric-label">Water Level</div>
-                        <div class="metric-value" id="levelValue">Normal</div>
-                        <div class="metric-bar">
-                            <div class="bar-fill level-bar" style="width: 75%"></div>
-                        </div>
-
-
-                    </div> -->
-
-
                     <div class="metric-item">
                         <div class="metric-label">Water Level</div>
                         <div class="metric-value status-normal card-statu" id="waterLevelStatus">Normal</div>
@@ -256,6 +232,21 @@
                                 </div>
                             </div>
                             <div class="health-value">±3mm</div>
+                        </div>
+                        
+                        <div class="health-item" data-sensor="gps-module">
+                            <div class="health-icon gps-module">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                            <div class="health-details">
+                                <div class="health-name">GPS Module</div>
+                                <div class="health-model">NEO-8M</div>
+                                <div class="health-status offline" data-gps="status">
+                                    <i class="fas fa-circle"></i>
+                                    No GPS Fix
+                                </div>
+                            </div>
+                            <div class="health-value">±3m</div>
                         </div>
                         
                         <div class="health-item" data-sensor="wifi-connection">
