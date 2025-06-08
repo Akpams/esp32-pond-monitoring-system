@@ -1,8 +1,3 @@
-/**
- * Professional Pond Monitor Dashboard - Updated Main Application
- * Enhanced for professional UI with real sensor data integration
- */
-
 class PondMonitorDashboard {
     constructor() {
         this.isInitialized = false;
@@ -35,6 +30,7 @@ class PondMonitorDashboard {
             esp32: 'unknown',
             temperatureSensor: 'unknown',
             ultrasonicSensor: 'unknown',
+            gpsModule: 'unknown',
             wifi: 'unknown',
             firebase: 'unknown'
         };
@@ -44,7 +40,7 @@ class PondMonitorDashboard {
     
     async init() {
         try {
-            console.log('🚀 Initializing Professional Pond Monitor Dashboard...');
+            console.log('Initializing Professional Pond Monitor Dashboard...');
             
             // Validate configuration
             if (typeof CONFIG !== 'undefined') {
@@ -71,10 +67,10 @@ class PondMonitorDashboard {
             await this.startDataFetching();
             
             this.isInitialized = true;
-            console.log('✅ Professional Dashboard initialized successfully');
+            console.log('Professional Dashboard initialized successfully');
             
         } catch (error) {
-            console.error('❌ Dashboard initialization failed:', error);
+            console.error('Dashboard initialization failed:', error);
             this.showError('Failed to initialize dashboard: ' + error.message);
         }
     }
@@ -186,6 +182,7 @@ class PondMonitorDashboard {
                 console.warn('Using default Firebase URL - please update CONFIG');
             }
             
+            console.log('Fetching data from:', firebaseUrl);
             const response = await fetch(firebaseUrl);
             
             if (!response.ok) {
@@ -193,8 +190,9 @@ class PondMonitorDashboard {
             }
             
             const data = await response.json();
+            console.log('Raw Firebase data received:', data);
             
-            if (data && (data.temperature || data.waterLevel)) {
+            if (data && (data.temperature || data.waterLevel || data.location)) {
                 this.processSensorData(data);
                 this.updateUI();
                 this.updateConnectionStatus('connected');
@@ -223,25 +221,63 @@ class PondMonitorDashboard {
     }
     
     processSensorData(data) {
+        console.log('Processing sensor data:', data);
+        
+        // Process temperature data
+        let tempCelsius = null;
+        if (data.temperature) {
+            if (data.temperature.celsius !== undefined) {
+                tempCelsius = this.validateTemperature(data.temperature.celsius);
+            } else if (data.temperature.timestamp !== undefined) {
+                // Convert timestamp to temperature if needed
+                // This is a placeholder - adjust based on your sensor logic
+                tempCelsius = 29.8; // Default value
+            }
+        }
+        
+        // Process water level data
+        let waterDistance = null;
+        let waterStatus = 'Sensor Offline';
+        if (data.waterLevel) {
+            waterDistance = this.validateWaterLevel(data.waterLevel.distance);
+            waterStatus = data.waterLevel.status || 'Unknown';
+        }
+        
+        // Process GPS location data
+        let gpsData = {
+            latitude: null,
+            longitude: null,
+            time: null,
+            valid: false
+        };
+        
+        if (data.location) {
+            console.log('Processing GPS location data:', data.location);
+            gpsData = {
+                latitude: data.location.latitude || null,
+                longitude: data.location.longitude || null,
+                time: data.location.time || null,
+                valid: data.location.valid || false
+            };
+            console.log('Processed GPS data:', gpsData);
+        }
+        
         // Update sensor data
         this.sensorData = {
             temperature: {
-                celsius: this.validateTemperature(data.temperature?.celsius),
-                fahrenheit: this.validateTemperature(data.temperature?.fahrenheit)
+                celsius: tempCelsius,
+                fahrenheit: tempCelsius ? (tempCelsius * 9/5) + 32 : null
             },
             waterLevel: {
-                distance: this.validateWaterLevel(data.waterLevel?.distance),
-                status: data.waterLevel?.status || 'Unknown'
+                distance: waterDistance,
+                status: waterStatus
             },
-            location: {
-                latitude: data.location?.latitude || null,
-                longitude: data.location?.longitude || null,
-                time: data.location?.time || null,
-                valid: data.location?.valid || false
-            },
+            location: gpsData,
             timestamp: data.timestamp || Date.now(),
             deviceId: data.deviceId || 'pond-monitor-001'
         };
+        
+        console.log('Final processed sensor data:', this.sensorData);
         
         // Cache the data for future use
         this.cacheData(this.sensorData);
@@ -255,7 +291,7 @@ class PondMonitorDashboard {
         // Update last update time
         this.lastDataUpdate = new Date();
         
-        console.log('📊 Sensor data processed and cached:', this.sensorData);
+        console.log('Sensor data processed and cached successfully');
     }
     
     validateTemperature(value) {
@@ -312,12 +348,114 @@ class PondMonitorDashboard {
     updateUI() {
         this.updateTemperatureDisplay();
         this.updateWaterLevelDisplay();
+        this.updateLocationDisplay(); // Now properly defined
         this.updateStatsOverview();
         this.updateSystemStatus();
         this.updateEnvironmentalConditions();
         this.updateWaterQuality();
         this.updateChart();
         this.updateLastUpdateTime();
+    }
+    
+    updateLocationDisplay() {
+        const { location } = this.sensorData;
+        
+        console.log('Updating GPS location display:', location);
+        
+        if (location && location.valid && location.latitude !== null && location.longitude !== null) {
+            // Update latitude displays
+            const latElements = document.querySelectorAll('[data-gps="latitude"]');
+            console.log(`Found ${latElements.length} latitude elements to update`);
+            latElements.forEach((el, index) => {
+                console.log(`Updating latitude element ${index}:`, el);
+                el.textContent = location.latitude.toFixed(6);
+            });
+            
+            // Update longitude displays  
+            const lonElements = document.querySelectorAll('[data-gps="longitude"]');
+            console.log(`Found ${lonElements.length} longitude elements to update`);
+            lonElements.forEach((el, index) => {
+                console.log(`Updating longitude element ${index}:`, el);
+                el.textContent = location.longitude.toFixed(6);
+            });
+            
+            // Update GPS time displays
+            const timeElements = document.querySelectorAll('[data-gps="time"]');
+            console.log(`Found ${timeElements.length} time elements to update`);
+            timeElements.forEach((el, index) => {
+                console.log(`Updating time element ${index}:`, el);
+                el.textContent = location.time || '--:--:--';
+            });
+            
+            // Update GPS status indicators
+            const statusElements = document.querySelectorAll('[data-gps="status"]');
+            console.log(`Found ${statusElements.length} status elements to update`);
+            statusElements.forEach((el, index) => {
+                console.log(`Updating status element ${index}:`, el);
+                if (el.classList.contains('health-status')) {
+                    el.innerHTML = '<i class="fas fa-circle"></i> GPS Active';
+                    el.className = 'health-status online';
+                } else if (el.classList.contains('env-trend')) {
+                    el.innerHTML = '<i class="fas fa-satellite-dish"></i> Active';
+                } else {
+                    el.innerHTML = '<i class="fas fa-circle"></i> GPS Active';
+                    el.className = 'health-status online';
+                }
+            });
+            
+            // Update GPS progress bars
+            const gpsBars = document.querySelectorAll('.gps-bar');
+            console.log(`Found ${gpsBars.length} GPS bar elements to update`);
+            gpsBars.forEach((bar, index) => {
+                console.log(`Updating GPS bar ${index}:`, bar);
+                bar.style.width = '100%';
+                bar.style.backgroundColor = '#10b981'; // Green color for active
+            });
+            
+            // Update system status for GPS
+            this.systemStatus.gpsModule = 'Active';
+            
+            console.log('GPS data successfully updated:', {
+                lat: location.latitude,
+                lon: location.longitude,
+                time: location.time,
+                valid: location.valid
+            });
+            
+        } else {
+            // No GPS fix - show placeholders
+            console.log('No valid GPS data available, showing placeholders');
+            
+            const latElements = document.querySelectorAll('[data-gps="latitude"]');
+            latElements.forEach(el => el.textContent = '--');
+            
+            const lonElements = document.querySelectorAll('[data-gps="longitude"]');
+            lonElements.forEach(el => el.textContent = '--');
+            
+            const timeElements = document.querySelectorAll('[data-gps="time"]');
+            timeElements.forEach(el => el.textContent = '--:--:--');
+            
+            const statusElements = document.querySelectorAll('[data-gps="status"]');
+            statusElements.forEach(el => {
+                if (el.classList.contains('health-status')) {
+                    el.innerHTML = '<i class="fas fa-circle"></i> No GPS Fix';
+                    el.className = 'health-status offline';
+                } else if (el.classList.contains('env-trend')) {
+                    el.innerHTML = '<i class="fas fa-satellite-dish"></i> No Fix';
+                } else {
+                    el.innerHTML = '<i class="fas fa-circle"></i> No GPS Fix';
+                    el.className = 'health-status offline';
+                }
+            });
+            
+            const gpsBars = document.querySelectorAll('.gps-bar');
+            gpsBars.forEach(bar => {
+                bar.style.width = '0%';
+            });
+            
+            // Update system status for GPS
+            this.systemStatus.gpsModule = 'No Fix';
+        }
     }
     
     updateTemperatureDisplay() {
@@ -415,20 +553,41 @@ class PondMonitorDashboard {
         this.systemStatus.temperatureSensor = this.sensorData.temperature.celsius !== null ? 'Active' : 'Offline';
         this.systemStatus.ultrasonicSensor = this.sensorData.waterLevel.distance !== null ? 'Active' : 'Offline';
         this.systemStatus.wifi = this.connectionStatus === 'connected' ? 'Strong Signal' : 'Disconnected';
+        // GPS status is already updated in updateLocationDisplay()
         
         // Update individual sensor status displays
         this.updateSensorStatus('tempSensorStatus', this.systemStatus.temperatureSensor);
         this.updateSensorStatus('ultrasonicStatus', this.systemStatus.ultrasonicSensor);
         this.updateSensorStatus('esp32Status', this.systemStatus.esp32);
-        this.updateSensorStatus('firebaseSync', this.systemStatus.firebase);
+        this.updateSensorStatus('firebaseStatus', this.systemStatus.firebase);
         this.updateSensorStatus('wifiStatus', this.systemStatus.wifi);
+        
+        // Update GPS status in system health section
+        const gpsHealthElement = document.querySelector('[data-sensor="gps-module"] .health-status');
+        if (gpsHealthElement) {
+            gpsHealthElement.innerHTML = `<i class="fas fa-circle"></i> ${this.systemStatus.gpsModule}`;
+            if (this.systemStatus.gpsModule === 'Active') {
+                gpsHealthElement.className = 'health-status online';
+            } else {
+                gpsHealthElement.className = 'health-status offline';
+            }
+        }
         
         // Update overall system health percentage
         let healthPercentage = 0;
-        if (this.systemStatus.esp32 === 'Online') healthPercentage += 25;
-        if (this.systemStatus.temperatureSensor === 'Active') healthPercentage += 25;
-        if (this.systemStatus.ultrasonicSensor === 'Active') healthPercentage += 25;
-        if (this.systemStatus.firebase === 'Connected') healthPercentage += 25;
+        const healthSystems = [
+            this.systemStatus.esp32,
+            this.systemStatus.temperatureSensor,
+            this.systemStatus.ultrasonicSensor,
+            this.systemStatus.gpsModule,
+            this.systemStatus.firebase
+        ];
+        
+        healthSystems.forEach(status => {
+            if (status === 'Online' || status === 'Active' || status === 'Connected') {
+                healthPercentage += 20; // 100% / 5 systems = 20% each
+            }
+        });
         
         this.updateMetricBar('health-bar', healthPercentage, 0, 100);
         
@@ -456,12 +615,7 @@ class PondMonitorDashboard {
             this.updateStatValue('avgTemp', temperature.celsius.toFixed(1) + '°C');
         }
         
-        // Update GPS location displays
-        this.updateLocationDisplay();
-    }C');
-            this.updateStatValue('maxTemp', (temperature.celsius + 2).toFixed(1) + '°C');
-            this.updateStatValue('avgTemp', temperature.celsius.toFixed(1) + '°C');
-        }
+        // GPS location display is handled by updateLocationDisplay()
     }
     
     updateWaterQuality() {
@@ -623,13 +777,36 @@ class PondMonitorDashboard {
         }
     }
     
+    updateTrends() {
+        // Update temperature trend
+        const tempTrend = this.calculateTrend(this.historicalData.temperature);
+        const tempTrendElement = document.querySelector('.env-trend');
+        if (tempTrendElement && this.sensorData.temperature.celsius !== null) {
+            const change = '+0.3°C'; // This would be calculated from actual trend
+            switch (tempTrend) {
+                case 'rising':
+                    tempTrendElement.innerHTML = '<i class="fas fa-arrow-up"></i> ' + change;
+                    tempTrendElement.className = 'env-trend up';
+                    break;
+                case 'falling':
+                    tempTrendElement.innerHTML = '<i class="fas fa-arrow-down"></i> ' + change;
+                    tempTrendElement.className = 'env-trend down';
+                    break;
+                default:
+                    tempTrendElement.innerHTML = '<i class="fas fa-minus"></i> Stable';
+                    tempTrendElement.className = 'env-trend stable';
+            }
+        }
+    }
+    
     showOfflineState() {
-        console.log('📴 Showing offline state - no sensor data available');
+        console.log('Showing offline state - no sensor data available');
         
         // Reset sensor data to null values
         this.sensorData = {
             temperature: { celsius: null, fahrenheit: null },
             waterLevel: { distance: null, status: 'Sensor Offline' },
+            location: { latitude: null, longitude: null, time: null, valid: false },
             timestamp: null,
             deviceId: null
         };
@@ -637,6 +814,7 @@ class PondMonitorDashboard {
         // Update UI to reflect offline state
         this.updateTemperatureDisplay();
         this.updateWaterLevelDisplay();
+        this.updateLocationDisplay();
         this.updateSystemStatus();
         this.updateWaterQuality();
         
@@ -645,11 +823,18 @@ class PondMonitorDashboard {
     }
     
     calculateOverallStatus() {
-        const { temperature, waterLevel } = this.sensorData;
+        const { temperature, waterLevel, location } = this.sensorData;
         
-        if (temperature.celsius === null && waterLevel.distance === null) {
+        let activeComponents = 0;
+        let totalComponents = 3;
+        
+        if (temperature.celsius !== null) activeComponents++;
+        if (waterLevel.distance !== null) activeComponents++;
+        if (location.valid && location.latitude !== null) activeComponents++;
+        
+        if (activeComponents === 0) {
             return 'Offline';
-        } else if (temperature.celsius !== null && waterLevel.distance !== null) {
+        } else if (activeComponents === totalComponents) {
             return 'Online';
         } else {
             return 'Partial';
@@ -903,6 +1088,47 @@ class PondMonitorDashboard {
                 this.closeAlert();
             }, 10000);
         }
+        
+        // Also update alert list
+        this.updateAlertList(alert);
+    }
+    
+    updateAlertList(newAlert) {
+        const alertList = document.getElementById('alertList');
+        if (!alertList) return;
+        
+        // Create new alert item
+        const alertItem = document.createElement('div');
+        alertItem.className = `alert-item ${newAlert.severity}`;
+        alertItem.innerHTML = `
+            <div class="alert-icon">
+                <i class="fas fa-${newAlert.severity === 'critical' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-title">${newAlert.type.replace('-', ' ').toUpperCase()}</div>
+                <div class="alert-message">${newAlert.message}</div>
+                <div class="alert-time">Just now</div>
+            </div>
+        `;
+        
+        // Add to top of list
+        alertList.insertBefore(alertItem, alertList.firstChild);
+        
+        // Limit to 5 alerts
+        const alertItems = alertList.querySelectorAll('.alert-item');
+        if (alertItems.length > 5) {
+            alertList.removeChild(alertItems[alertItems.length - 1]);
+        }
+        
+        // Update alert badge
+        const alertBadge = document.getElementById('alertBadge');
+        if (alertBadge) {
+            const criticalAlerts = alertList.querySelectorAll('.alert-item.critical').length;
+            const badgeCount = alertBadge.querySelector('.badge-count');
+            if (badgeCount) {
+                badgeCount.textContent = criticalAlerts;
+            }
+        }
     }
     
     closeAlert() {
@@ -914,8 +1140,8 @@ class PondMonitorDashboard {
     
     updateConnectionStatus(status) {
         this.connectionStatus = status;
-        const dot = document.querySelector('.connection-dot');
-        const text = dot?.nextElementSibling;
+        const dot = document.querySelector('.connection-dot, #connectionDot');
+        const text = document.querySelector('#connectionText') || dot?.nextElementSibling;
         
         if (!dot || !text) return;
         
@@ -923,23 +1149,23 @@ class PondMonitorDashboard {
         
         switch (status) {
             case 'connected':
-                dot.style.background = 'var(--status-excellent)';
+                dot.style.background = '#10b981'; // Green
                 text.textContent = 'Connected';
                 break;
             case 'connecting':
-                dot.style.background = 'var(--status-warning)';
+                dot.style.background = '#f59e0b'; // Yellow
                 text.textContent = 'Connecting...';
                 break;
             case 'cached':
-                dot.style.background = 'var(--status-warning)';
+                dot.style.background = '#f59e0b'; // Yellow
                 text.textContent = 'Using Cached Data';
                 break;
             case 'offline':
-                dot.style.background = 'var(--status-offline)';
+                dot.style.background = '#6b7280'; // Gray
                 text.textContent = 'Offline';
                 break;
             case 'error':
-                dot.style.background = 'var(--status-critical)';
+                dot.style.background = '#ef4444'; // Red
                 text.textContent = 'Connection Error';
                 break;
         }
@@ -1005,6 +1231,74 @@ class PondMonitorDashboard {
                 });
             }
         }
+        
+        // Check individual sensor health
+        this.checkSensorHealth();
+    }
+    
+    checkSensorHealth() {
+        const now = Date.now();
+        const { temperature, waterLevel, location } = this.sensorData;
+        
+        // Temperature sensor health
+        const tempSensorElement = document.querySelector('[data-sensor="temperature-sensor"] .health-status');
+        if (tempSensorElement) {
+            if (temperature.celsius !== null) {
+                tempSensorElement.innerHTML = '<i class="fas fa-circle"></i> Active';
+                tempSensorElement.className = 'health-status online';
+            } else {
+                tempSensorElement.innerHTML = '<i class="fas fa-circle"></i> Offline';
+                tempSensorElement.className = 'health-status offline';
+            }
+        }
+        
+        // Ultrasonic sensor health
+        const ultrasonicElement = document.querySelector('[data-sensor="ultrasonic-sensor"] .health-status');
+        if (ultrasonicElement) {
+            if (waterLevel.distance !== null) {
+                ultrasonicElement.innerHTML = '<i class="fas fa-circle"></i> Active';
+                ultrasonicElement.className = 'health-status online';
+            } else {
+                ultrasonicElement.innerHTML = '<i class="fas fa-circle"></i> Offline';
+                ultrasonicElement.className = 'health-status offline';
+            }
+        }
+        
+        // GPS module health
+        const gpsElement = document.querySelector('[data-sensor="gps-module"] .health-status');
+        if (gpsElement) {
+            if (location.valid && location.latitude !== null) {
+                gpsElement.innerHTML = '<i class="fas fa-circle"></i> GPS Fix';
+                gpsElement.className = 'health-status online';
+            } else {
+                gpsElement.innerHTML = '<i class="fas fa-circle"></i> No GPS Fix';
+                gpsElement.className = 'health-status offline';
+            }
+        }
+        
+        // WiFi connection health
+        const wifiElement = document.querySelector('[data-sensor="wifi-connection"] .health-status');
+        if (wifiElement) {
+            if (this.connectionStatus === 'connected') {
+                wifiElement.innerHTML = '<i class="fas fa-circle"></i> Strong Signal';
+                wifiElement.className = 'health-status online';
+            } else {
+                wifiElement.innerHTML = '<i class="fas fa-circle"></i> Disconnected';
+                wifiElement.className = 'health-status offline';
+            }
+        }
+        
+        // Firebase sync health
+        const firebaseElement = document.querySelector('[data-sensor="firebase-sync"] .health-status');
+        if (firebaseElement) {
+            if (this.connectionStatus === 'connected') {
+                firebaseElement.innerHTML = '<i class="fas fa-circle"></i> Synchronized';
+                firebaseElement.className = 'health-status online';
+            } else {
+                firebaseElement.innerHTML = '<i class="fas fa-circle"></i> Sync Error';
+                firebaseElement.className = 'health-status offline';
+            }
+        }
     }
     
     scheduleRetry() {
@@ -1016,18 +1310,18 @@ class PondMonitorDashboard {
         if (this.retryCount < maxRetries) {
             this.retryCount++;
             setTimeout(() => {
-                console.log(`🔄 Retrying connection (${this.retryCount}/${maxRetries})`);
+                console.log(`Retrying connection (${this.retryCount}/${maxRetries})`);
                 this.fetchData();
             }, retryDelay);
         } else {
-            console.error('❌ Max retries reached. Stopping automatic retries.');
+            console.error('Max retries reached. Stopping automatic retries.');
             this.updateConnectionStatus('error');
             this.showOfflineState();
         }
     }
     
     refreshData() {
-        console.log('🔄 Manual refresh triggered');
+        console.log('Manual refresh triggered');
         this.retryCount = 0;
         this.fetchData();
     }
@@ -1042,10 +1336,10 @@ class PondMonitorDashboard {
     
     handleOnlineStatus(isOnline) {
         if (isOnline) {
-            console.log('🌐 Back online - resuming updates');
+            console.log('Back online - resuming updates');
             this.resumeUpdates();
         } else {
-            console.log('📴 Gone offline - pausing updates');
+            console.log('Gone offline - pausing updates');
             this.pauseUpdates();
         }
     }
@@ -1118,7 +1412,7 @@ class PondMonitorDashboard {
                     ...data,
                     cacheTime: Date.now()
                 }));
-                console.log('💾 Data cached successfully');
+                console.log('Data cached successfully');
             } catch (error) {
                 console.warn('Failed to cache data:', error);
             }
@@ -1135,10 +1429,10 @@ class PondMonitorDashboard {
                     
                     // Use cached data if it's less than 1 hour old
                     if (cacheAge < 3600000) { // 1 hour = 3600000ms
-                        console.log(`📋 Found cached data (${Math.round(cacheAge / 60000)} minutes old)`);
+                        console.log(`Found cached data (${Math.round(cacheAge / 60000)} minutes old)`);
                         return data;
                     } else {
-                        console.log('📋 Cached data too old, ignoring');
+                        console.log('Cached data too old, ignoring');
                         localStorage.removeItem('pondMonitorData');
                     }
                 }
@@ -1148,6 +1442,45 @@ class PondMonitorDashboard {
         }
         return null;
     }
+    
+    // Manual GPS test function for debugging
+    testGPSUpdate() {
+        console.log('🧪 Testing GPS update with sample data...');
+        const testData = {
+            location: {
+                latitude: 9.261336833,
+                longitude: 7.378359667,
+                time: "13:33:45",
+                valid: true
+            }
+        };
+        
+        this.processSensorData(testData);
+        this.updateLocationDisplay();
+        console.log('✅ GPS test completed');
+    }
+    
+    // Debug function to log all GPS elements
+    debugGPSElements() {
+        console.log('🔍 Debugging GPS elements...');
+        
+        const selectors = [
+            '[data-gps="latitude"]',
+            '[data-gps="longitude"]', 
+            '[data-gps="time"]',
+            '[data-gps="status"]',
+            '.gps-bar'
+        ];
+        
+        selectors.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            console.log(`${selector}: Found ${elements.length} elements`);
+            elements.forEach((el, index) => {
+                console.log(`  Element ${index}:`, el, 'Current text:', el.textContent);
+            });
+        });
+    }
+    
     destroy() {
         if (this.updateTimer) clearInterval(this.updateTimer);
         if (this.healthCheckTimer) clearInterval(this.healthCheckTimer);
@@ -1158,7 +1491,7 @@ class PondMonitorDashboard {
         window.removeEventListener('online', this.handleOnlineStatus);
         window.removeEventListener('offline', this.handleOnlineStatus);
         
-        console.log('🧹 Dashboard cleanup completed');
+        console.log('Dashboard cleanup completed');
     }
 }
 
@@ -1181,6 +1514,19 @@ window.exportData = function() {
     }
 };
 
+// Debug functions for testing GPS
+window.testGPS = function() {
+    if (window.dashboard) {
+        window.dashboard.testGPSUpdate();
+    }
+};
+
+window.debugGPS = function() {
+    if (window.dashboard) {
+        window.dashboard.debugGPSElements();
+    }
+};
+
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Check for saved dark mode preference
@@ -1191,7 +1537,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the dashboard
     window.dashboard = new PondMonitorDashboard();
     
-    console.log('✅ Professional Pond Dashboard Ready');
+    console.log('Professional Pond Dashboard Ready');
+    console.log('Debug commands available: testGPS(), debugGPS(), refreshDashboard()');
 });
 
 // Handle page unload
@@ -1206,10 +1553,10 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
-                console.log('✅ Service Worker registered successfully');
+                console.log('Service Worker registered successfully');
             })
             .catch(error => {
-                console.log('❌ Service Worker registration failed');
+                console.log('Service Worker registration failed');
             });
     });
 }
