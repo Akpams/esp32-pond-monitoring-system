@@ -508,7 +508,7 @@ class PondMonitorDashboard {
             }
         });
         
-        // Update status displays
+        // Update status displays - including Pond Environment section
         const statusElements = document.querySelectorAll('.card-status, #waterStatus, #waterLevelStatus');
         statusElements.forEach(element => {
             if (element) {
@@ -516,6 +516,20 @@ class PondMonitorDashboard {
                 element.className = `card-status ${this.getStatusClass(status)}`;
             }
         });
+        
+        // Also update the Pond Environment water level status specifically
+        const pondEnvCard = document.querySelector('.metrics-grid .card:nth-child(2)'); // Pond Environment card
+        if (pondEnvCard) {
+            const waterLevelRow = pondEnvCard.querySelector('.env-item:nth-child(2)'); // Water Level row
+            if (waterLevelRow) {
+                const statusSpan = waterLevelRow.querySelector('.env-value') || waterLevelRow.querySelector('span:last-child');
+                if (statusSpan) {
+                    statusSpan.textContent = status;
+                    // Optionally add color coding based on status
+                    statusSpan.style.color = this.getStatusColor(status);
+                }
+            }
+        }
         
         // Update water tank visualization
         this.updateWaterTank(distance);
@@ -878,6 +892,16 @@ class PondMonitorDashboard {
             case 'high level': return 'status-critical';
             case 'sensor offline': return 'status-critical';
             default: return 'status-critical';
+        }
+    }
+    
+    getStatusColor(status) {
+        switch (status.toLowerCase()) {
+            case 'normal': return '#10b981'; // Green
+            case 'low level': return '#f59e0b'; // Yellow/Orange
+            case 'high level': return '#ef4444'; // Red
+            case 'sensor offline': return '#6b7280'; // Gray
+            default: return '#6b7280'; // Gray
         }
     }
     
