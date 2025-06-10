@@ -1,6 +1,6 @@
 # Pond Monitor Pro
 
-A complete IoT monitoring system for aquatic environments, built with ESP32, Firebase, and modern web technologies. Provides real-time monitoring of water temperature, level, and GPS location with a professional dashboard interface.
+A complete IoT pond monitoring system, built with ESP32, Firebase, and modern web technologies. Provides real-time monitoring of water temperature, level, and GPS location with a professional dashboard interface.
 
 🌐 **Live Demo**: https://dashing-sunshine-e07839.netlify.app/
 
