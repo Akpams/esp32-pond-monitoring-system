@@ -28,7 +28,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 const char* FIREBASE_HOST = "https://pond-monitor-d9ca9-default-rtdb.firebaseio.com";
 const char* FIREBASE_PATH = "/sensors.json";
 
-const char* ssid = "VT";
+const char* ssid = "pond";
 const char* password = "123456789";
 
 #define ONE_WIRE_BUS 5
@@ -409,7 +409,7 @@ String readWaterLevel() {
   uint16_t distance_cm = measureDistance();
   
   if (distance_cm > 0 && distance_cm < MAX_DISTANCE) {
-    Serial.printf("💧 Water distance: %d cm\n", distance_cm);
+    Serial.printf("Water distance: %d cm\n", distance_cm);
     return String(distance_cm);
   }
   
