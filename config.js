@@ -1,6 +1,3 @@
-// Configuration file for Pond Monitoring Dashboard
-// Replace these values with your actual Firebase configuration
-
 const CONFIG = {
     // Firebase Configuration
     firebase: {
@@ -224,7 +221,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Development mode warnings
 if (ENVIRONMENT.isDevelopment) {
-    console.group('🔧 Pond Monitor Configuration');
+    console.group('Pond Monitor Configuration');
     console.log('Environment:', ENVIRONMENT);
     console.log('Capabilities:', CAPABILITIES);
     
@@ -232,7 +229,7 @@ if (ENVIRONMENT.isDevelopment) {
     if (configErrors.length > 0) {
         console.warn('Configuration errors:', configErrors);
     } else {
-        console.log('✅ Configuration validated successfully');
+        console.log('Configuration validated successfully');
     }
     console.groupEnd();
 }
