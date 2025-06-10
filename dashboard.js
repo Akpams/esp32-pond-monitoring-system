@@ -1445,7 +1445,7 @@ class PondMonitorDashboard {
     
     // Manual GPS test function for debugging
     testGPSUpdate() {
-        console.log('🧪 Testing GPS update with sample data...');
+        console.log('Testing GPS update with sample data...');
         const testData = {
             location: {
                 latitude: 9.261336833,
@@ -1457,12 +1457,12 @@ class PondMonitorDashboard {
         
         this.processSensorData(testData);
         this.updateLocationDisplay();
-        console.log('✅ GPS test completed');
+        console.log('GPS test completed');
     }
     
     // Debug function to log all GPS elements
     debugGPSElements() {
-        console.log('🔍 Debugging GPS elements...');
+        console.log('Debugging GPS elements...');
         
         const selectors = [
             '[data-gps="latitude"]',
