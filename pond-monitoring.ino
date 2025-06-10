@@ -614,7 +614,7 @@ String generateHTML() {
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pond Monitor Pro - Complete System</title>
+  <title>Pond Monitoring</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
